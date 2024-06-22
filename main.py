@@ -8,6 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import base64
+import shutil
 
 USER_DIR = 'user'
 KEY_SIZE = 32
@@ -44,6 +45,8 @@ class EmailClient:
         login_button.grid(row=0, column=0, padx=10, pady=10)
         register_button = tk.Button(frame, text="Register", command=self.init_register_screen)
         register_button.grid(row=0, column=1, padx=10, pady=10)
+        manage_button = tk.Button(frame, text="Manage", command=self.init_manage_screen)
+        manage_button.grid(row=1, column=0, columnspan=2, pady=10)
 
     def init_login_screen(self):
         self.clear_screen()
@@ -97,6 +100,23 @@ class EmailClient:
         
         back_button = tk.Button(frame, text="Back", command=self.init_main_screen)
         back_button.grid(row=5, column=0, padx=5, pady=5)
+
+    def init_manage_screen(self):
+        self.clear_screen()
+
+        frame = tk.Frame(self.root)
+        frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+
+        tk.Label(frame, text="Select Email to Delete:").grid(row=0, column=0, padx=5, pady=5)
+        self.manage_combobox = ttk.Combobox(frame, width=47)
+        self.manage_combobox['values'] = self.get_user_emails()
+        self.manage_combobox.grid(row=0, column=1, padx=5, pady=5)
+
+        delete_button = tk.Button(frame, text="Delete", command=self.delete_user)
+        delete_button.grid(row=1, column=1, padx=5, pady=5)
+        
+        back_button = tk.Button(frame, text="Back", command=self.init_main_screen)
+        back_button.grid(row=1, column=0, padx=5, pady=5)
 
     def init_email_screen(self, email, password, smtp_server, port):
         self.clear_screen()
@@ -174,6 +194,16 @@ class EmailClient:
 
         messagebox.showinfo("Success", "User registered successfully")
         self.init_main_screen()
+
+    def delete_user(self):
+        email = self.manage_combobox.get()
+        user_path = os.path.join(USER_DIR, email)
+        if os.path.exists(user_path):
+            shutil.rmtree(user_path)
+            messagebox.showinfo("Success", f"User {email} deleted successfully")
+            self.init_manage_screen()
+        else:
+            messagebox.showerror("Error", "User not found")
 
     def send_email(self):
         receiver = self.receiver_entry.get()
